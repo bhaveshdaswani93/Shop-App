@@ -1,16 +1,45 @@
-import React from "react";
+import React, { useEffect, useCallback,useState } from "react";
 import { FlatList, Text, Platform } from "react-native";
-import { useSelector,useDispatch } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { HeaderButtons, Item } from "react-navigation-header-buttons";
 
 import HeaderButton from "../../components/UI/HeaderButton";
 import OrderItem from "../../components/shop/OrderItem";
+import { fetchOrder } from "../../store/actions/ordersAction";
+import Loader from "../../components/UI/Loader";
+import Error from "../../components/UI/Error";
 
 const OrderScreen = props => {
-   
+  const [isLoading,setIsLoading] = useState(false);
+  const [error,setError] = useState(false);
   const orders = useSelector(state => state.order.orders);
+  console.log('orderScreen: ',orders)
+  const dispatch = useDispatch();
+  const fetchOrderRef = useCallback(async () => {
+   try {
+     setError(false)
+     setIsLoading(true)
+    await dispatch(fetchOrder());
+  } catch (e) {
+    setError(e.message)
+  }
+  setIsLoading(false)
+    
+  }, []);
+  useEffect(() => {
+    
+    fetchOrderRef();
+  }, []);
+  if(isLoading) {
+    return <Loader />
+  }
+  if(error) {
+    return <Error  errorMessage = {error} />
+  }
   return (
+    
     <FlatList
+    
       data={orders}
       keyExtractor={item => item.id}
       renderItem={itemData => (
